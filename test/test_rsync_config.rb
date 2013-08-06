@@ -17,6 +17,16 @@ class RsyncConfigTest < Test::Unit::TestCase
 		assert_equal config.class, RsyncConfig::Config, 'Did not return a config object'
 	end
 
+	def test_accessing_missing_properties_returns_nil
+		config = RsyncConfig.load_config 'test/etc/rsyncd.conf'
+		assert_nil config.property(:i_dont_exist)
+	end
+
+	def test_accessing_a_property_returns_a_string
+		config = RsyncConfig.load_config 'test/etc/rsyncd.conf'
+		assert_equal 'nobody', config.property(:uid)
+	end
+
 	def test_one_module_output
 		config = RsyncConfig::Config.new
 		config.property :g1, 'true'
