@@ -29,15 +29,15 @@ class RsyncConfigTest < Test::Unit::TestCase
 
 	def test_one_module_output
 		config = RsyncConfig::Config.new
-		config.property :g1, 'true'
-		config.property :g2, 'false'
+		config.property :uid, 'true'
+		config.property :comment, 'false'
 
-		config.module(:ftp).property :l1, 'local'
+		config.module(:ftp).property :path, 'local'
 		expected = <<EOS
-g1 = true
-g2 = false
+uid = true
+comment = false
 [ftp]
-    l1 = local
+    path = local
 EOS
 		assert_equal expected.strip, config.to_s
 	end
