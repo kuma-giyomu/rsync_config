@@ -42,4 +42,25 @@ EOS
 		assert_equal expected.strip, config.to_s
 	end
 
+	def test_easy_getter
+		config = RsyncConfig::Config.new
+		config.property(:uid, 'test')
+		assert_equal 'test', config.uid
+	end
+	
+	def test_easy_setter
+		config = RsyncConfig::Config.new
+		config.uid = 'test'
+		assert_equal 'test', config.property(:uid)
+	end
+
+	def test_easy_accessor_complete
+		config = RsyncConfig::Config.new
+		config.uid = 'nut'
+		config.gid = 'kiwi'
+		config.uid = config.gid
+		assert_equal 'kiwi', config.uid
+		assert_equal config.gid, config.uid
+	end
+
 end
