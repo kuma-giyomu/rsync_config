@@ -19,20 +19,21 @@ class RsyncConfigTest < Test::Unit::TestCase
 
 	def test_accessing_missing_properties_returns_nil
 		config = RsyncConfig.load_config 'test/etc/rsyncd.conf'
-		assert_nil config.property(:i_dont_exist)
+		assert_nil config[:i_dont_exist]
 	end
 
 	def test_accessing_a_property_returns_a_string
 		config = RsyncConfig.load_config 'test/etc/rsyncd.conf'
-		assert_equal 'nobody', config.property(:uid)
+		assert_equal 'nobody', config[:uid]
 	end
 
 	def test_one_module_output
 		config = RsyncConfig::Config.new
-		config.property :uid, 'true'
-		config.property :comment, 'false'
+		config[:uid] = 'true'
+		config[:comment] = 'false'
 
-		config.module(:ftp).property :path, 'local'
+		ftp_module = config.module :ftp
+		ftp_module[:path] = 'local'
 		expected = <<EOS
 uid = true
 comment = false
@@ -42,25 +43,13 @@ EOS
 		assert_equal expected.strip, config.to_s
 	end
 
-	def test_easy_getter
-		config = RsyncConfig::Config.new
-		config.property(:uid, 'test')
-		assert_equal 'test', config.uid
-	end
-	
-	def test_easy_setter
-		config = RsyncConfig::Config.new
-		config.uid = 'test'
-		assert_equal 'test', config.property(:uid)
-	end
-
 	def test_easy_accessor_complete
 		config = RsyncConfig::Config.new
-		config.uid = 'nut'
-		config.gid = 'kiwi'
-		config.uid = config.gid
-		assert_equal 'kiwi', config.uid
-		assert_equal config.gid, config.uid
+		config[:uid] = 'nut'
+		config[:gid] = 'kiwi'
+		config[:uid] = config[:gid]
+		assert_equal 'kiwi', config[:uid]
+		assert_equal config[:gid], config[:uid]
 	end
 
 end

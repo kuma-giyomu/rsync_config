@@ -21,9 +21,9 @@ module RsyncConfig
 					class_name = elt.class.name
 					if class_name == 'RsyncConfig::Node::Property'
 						if @active_module 
-							@active_module.property elt.property.text_value, elt.value.text_value
+							@active_module[elt.property.text_value] = elt.value.text_value
 						else
-							@config.property elt.property.text_value, elt.value.text_value
+							@config[elt.property.text_value] = elt.value.text_value
 						end
 
 					elsif class_name == 'RsyncConfig::Node::Module'
