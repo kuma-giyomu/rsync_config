@@ -26,28 +26,40 @@ module RsyncConfig
 
 		end 
 		
-		def [](key, value = nil)
-			@properties = {} unless @properties
-
+		def [](key)
+			key = sanitize_key(key)
 			return nil if key.nil? 
+
+			properties[key]
+		end
+
+		def sanitize_key(key)
 			key = key.to_s if key.is_a? Symbol
 			key = key.strip.downcase
 			return nil if key.length == 0
 			return nil unless self.class.allowed_property? key
-
-
-			@properties[key] = value unless value.nil?
-
-			@properties[key]
+			key
 		end
 
-		alias_method :[]=, :[]
+		def []=(key, value)
+			key = sanitize_key(key)
+			if value.nil?
+				properties.delete key
+			else
+				properties[key] = value.to_s unless value.nil?
+			end
+		end
 
 		def properties_to_a
-			@properties && @properties.map do |key, value|
-				"#{key} = #{value}"
-			end || []
+			properties.map { |key, value| "#{key} = #{value}" }
 		end
+
+		private 
+		
+		def properties
+			@properties ||= {}
+		end
+		
 	end
 
 end
