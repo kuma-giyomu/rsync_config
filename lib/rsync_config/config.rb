@@ -3,6 +3,7 @@ module RsyncConfig
   class Config
 
     include Propertiable
+    include UserManagement
 
     # global properties
     allow_properties :motd_file, :pid_file, :port, :address, :socket_options, :listen_backlog

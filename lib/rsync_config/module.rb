@@ -3,6 +3,7 @@ module RsyncConfig
   class Module
 
     include Propertiable
+    include UserManagement
 
     # module properties
     allow_properties :comment, :path, :use_chroot, :numeric_ids, :munge_symlinks, :charset
