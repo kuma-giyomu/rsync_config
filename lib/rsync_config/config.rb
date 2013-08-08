@@ -38,7 +38,7 @@ module RsyncConfig
       p = parser.parse content 
 
       unless p.nil?   
-        return p.to_config
+        return p.to_config.after_parse
       else
         raise RuntimeError, parser.failure_reason
       end
@@ -50,7 +50,7 @@ module RsyncConfig
       key = key.strip
       raise ArgumentError if key.length == 0
 
-      modules[key] = Module.new(self, key) unless modules[key]
+      modules[key] ||= Module.new(self, key)
 
       modules[key]
     end
@@ -81,6 +81,16 @@ module RsyncConfig
       modules.keys
     end
 
+    def after_parse
+      load_secrets_file self.[]('secrets file', true)
+
+      modules.each_value do |rmodule|
+        rmodule.load_secrets_file rmodule.[]('secrets file', true)
+      end
+
+      self
+    end
+
     private
 
     def modules
@@ -90,9 +100,11 @@ module RsyncConfig
     def write_secrets_files
       write_secrets_file self.[]('secrets file', true)
 
-      modules.each do |rmodule|
+      modules.each_value do |rmodule|
         rmodule.write_secrets_file rmodule.[]('secrets file', true)
       end
+
+      self
     end
   end
 

@@ -5,6 +5,8 @@ class RsyncConfigTest < Test::Unit::TestCase
 
   TEST_INPUT_FILE = File.join(__dir__, 'etc', 'rsyncd.conf')
 
+  TEST_INPUT_FILE_WITH_SECRETS = File.join(__dir__, 'etc', 'rsyncd_with_secrets.conf')
+
   TEST_OUTPUT_FILE = File.join(__dir__, 'etc', 'out', 'rsyncd.conf')
 
   TEST_SECRETS_FILE = File.join(__dir__, 'etc', 'out', 'secrets.conf')
@@ -172,6 +174,13 @@ EOL
       File.delete TEST_OUTPUT_FILE if File.exists? TEST_OUTPUT_FILE
       File.delete TEST_SECRETS_FILE if File.exists? TEST_SECRETS_FILE
     end
+  end
+
+  def test_parse_secrets_file
+    @config = RsyncConfig.load_file TEST_INPUT_FILE_WITH_SECRETS
+    ftp_module = @config.module :ftp
+    assert_not_nil ftp_module['secrets file']
+    assert_true ftp_module.user? 'john'
   end
 
 end

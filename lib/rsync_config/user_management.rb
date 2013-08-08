@@ -38,6 +38,12 @@ module RsyncConfig
       correct_file_permissions file
     end
 
+    def load_secrets_file(file)
+      return if file.nil?
+      raise "Cannot load secrets file #{file}" unless File.exists?(file) && File.readable?(file)
+
+    end
+
     private 
 
     def correct_file_permissions(file)
