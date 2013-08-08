@@ -44,19 +44,15 @@ module RsyncConfig
       end
     end
 
-    def initialize
-      @modules = {}
-    end
-
     def module(key)
       raise ArgumentError if key.nil?
       key = key.to_s if key.is_a? Symbol
       key = key.strip
       raise ArgumentError if key.length == 0
 
-      @modules[key] = Module.new(self, key) unless @modules[key]
+      modules[key] = Module.new(self, key) unless modules[key]
 
-      @modules[key]
+      modules[key]
     end
 
     def to_s
@@ -66,7 +62,7 @@ module RsyncConfig
     def to_config_file
       out = properties_to_a.join "\n"
 
-      @modules && @modules.each do |key, mod|
+      modules.each do |key, mod|
         out += "\n" + mod.to_config_file
       end
 
@@ -79,6 +75,15 @@ module RsyncConfig
       end
     end
 
+    private
+
+    def modules
+      @modules ||= {}
+    end
+
+    def write_secrets_files
+      write_secrets_file
+    end
   end
 
 end
