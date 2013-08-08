@@ -162,6 +162,9 @@ EOL
 john:doe
 EOL
       assert_true File.exists? TEST_SECRETS_FILE
+
+      assert_nil File.world_readable? TEST_SECRETS_FILE
+      assert_nil File.world_writable? TEST_SECRETS_FILE
       assert_equal secrets_expected.strip, File.read(TEST_SECRETS_FILE).strip
     rescue ::StandardError
       fail

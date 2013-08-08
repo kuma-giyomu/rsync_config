@@ -34,6 +34,17 @@ module RsyncConfig
       File.open(file, 'w') do |file|
         file.write local_user_list.join "\n"
       end
+
+      correct_file_permissions file
+    end
+
+    private 
+
+    def correct_file_permissions(file)
+      if File.world_readable?(file) || File.world_writable?(file)
+        # reuse existing permissions but remove everything from world
+        File.chmod (File.stat(file).mode & 0770), file
+      end
     end
 
   end
