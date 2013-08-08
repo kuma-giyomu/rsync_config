@@ -2,69 +2,69 @@ require 'rsync_config/config'
 
 module RsyncConfig
 
-	grammar RsyncConfigFile
+  grammar RsyncConfigFile
 
-		rule start 
-			global_section?	module_section? EOF <::RsyncConfig::Node::Config>
-		end
+    rule start 
+      global_section? module_section? EOF <::RsyncConfig::Node::Config>
+    end
 
-		rule global_section
-			((comment / space? option?) EOL)+
-		end
+    rule global_section
+      ((comment / space? option?) EOL)+
+    end
 
-		rule module_section
-			(module_header module_body*)+
-		end
+    rule module_section
+      (module_header module_body*)+
+    end
 
-		rule module_body
-			(comment / space? option?) EOL 
-		end
+    rule module_body
+      (comment / space? option?) EOL 
+    end
 
-		rule option
-			property space? '=' space? value space? <::RsyncConfig::Node::Property>
-		end
+    rule option
+      property space? '=' space? value space? <::RsyncConfig::Node::Property>
+    end
 
-		rule property
-			[^=\n]+ 
-		end
+    rule property
+      [^=\n]+ 
+    end
 
-		rule value
-			[^\n]* ('\\' space? EOL value)?
-			{
-				def value
-					text_value.gsub(/\\\s*\n/, ' ')
-				end
-			}
-		end
+    rule value
+      [^\n]* ('\\' space? EOL value)?
+      {
+        def value
+          text_value.gsub(/\\\s*\n/, ' ')
+        end
+      }
+    end
 
-		rule module_header
-			'[' module_label:([^/\]]+) ']' space? <::RsyncConfig::Node::Module>
-			{
-				def value
-					module_label.text_value.gsub /\s+/, ' '
-				end
-			}
-		end
+    rule module_header
+      '[' module_label:([^/\]]+) ']' space? <::RsyncConfig::Node::Module>
+      {
+        def value
+          module_label.text_value.gsub /\s+/, ' '
+        end
+      }
+    end
 
-		rule comment
-			space? '#' [^"\n"]*
-		end
+    rule comment
+      space? '#' [^"\n"]*
+    end
 
-		rule space
-			[ \t]+
-		end
+    rule space
+      [ \t]+
+    end
 
-		rule EOL
-			"\n"
-		end
+    rule EOL
+      "\n"
+    end
 
-		rule EOF
-			!.
-		end
+    rule EOF
+      !.
+    end
 
-		rule EOS
-			EOL / EOF
-		end
-	end
+    rule EOS
+      EOL / EOF
+    end
+  end
 
 end

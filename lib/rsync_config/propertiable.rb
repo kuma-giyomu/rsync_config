@@ -1,65 +1,68 @@
 module RsyncConfig
 
-	module Propertiable
-	
-		def self.included base
-			base.extend ClassMethods
-		end
+  module Propertiable
+  
+    def self.included base
+      base.extend ClassMethods
+    end
 
-		module ClassMethods
+    module ClassMethods
 
-			def allow_properties *properties
-				properties.each do |property|
-					property = property.to_s if property.is_a? Symbol
-					property = property.downcase.strip.gsub(/_/, ' ')
-					allowed_properties.push property
-				end
-			end
+      def allow_properties *properties
+        properties.each do |property|
+          property = property.to_s if property.is_a? Symbol
+          property = property.downcase.strip.gsub(/_/, ' ')
+          allowed_properties.push property
+        end
+      end
 
-			def allowed_properties
-				@allowed_properties ||= []
-			end
+      def allowed_properties
+        @allowed_properties ||= []
+      end
 
-			def allowed_property? property
-				allowed_properties.include? property
-			end
+      def allowed_property? property
+        allowed_properties.include? property
+      end
 
-		end 
-		
-		def [](key)
-			key = sanitize_key(key)
-			return nil if key.nil? 
+    end 
+    
+    def [](key)
+      key = sanitize_key(key)
+      return nil if key.nil? 
 
-			properties[key]
-		end
+      value = properties[key]
+      return @parent_config[key] if value.nil? && @parent_config.respond_to?(:[])
 
-		def sanitize_key(key)
-			key = key.to_s if key.is_a? Symbol
-			key = key.strip.downcase
-			return nil if key.length == 0
-			return nil unless self.class.allowed_property? key
-			key
-		end
+      value
+    end
 
-		def []=(key, value)
-			key = sanitize_key(key)
-			if value.nil?
-				properties.delete key
-			else
-				properties[key] = value.to_s unless value.nil?
-			end
-		end
+    def sanitize_key(key)
+      key = key.to_s if key.is_a? Symbol
+      key = key.strip.downcase
+      return nil if key.length == 0
+      return nil unless self.class.allowed_property? key
+      key
+    end
 
-		def properties_to_a
-			properties.map { |key, value| "#{key} = #{value}" }
-		end
+    def []=(key, value)
+      key = sanitize_key(key)
+      if value.nil?
+        properties.delete key
+      else
+        properties[key] = value.to_s unless value.nil?
+      end
+    end
 
-		private 
-		
-		def properties
-			@properties ||= {}
-		end
-		
-	end
+    def properties_to_a
+      properties.map { |key, value| "#{key} = #{value}" }
+    end
+
+    private 
+    
+    def properties
+      @properties ||= {}
+    end
+    
+  end
 
 end

@@ -1,9 +1,10 @@
 module RsyncConfig
+
   module Node
 
     class Config < Treetop::Runtime::SyntaxNode
 
-      def to_object
+      def to_config
         @config = ::RsyncConfig::Config.new
 
         @active_module = nil
@@ -43,5 +44,7 @@ module RsyncConfig
 
     class Property < Treetop::Runtime::SyntaxNode
     end
+
   end
+
 end
