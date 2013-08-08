@@ -26,6 +26,16 @@ module RsyncConfig
       end 
     end
 
+    def write_secrets_file(file)
+      return if file.nil?
+      raise "Cannot write secrets file #{file}" if File.exists?(file) && ! File.writable?(file)
+      raise "Cannoe create secrets file #{file}" if !File.exist?(file) && ! ( Dir.exists?(File.dirname(file)) && File.writable?(File.dirname(file)))
+
+      File.open(file, 'w') do |file|
+        file.write local_user_list.join "\n"
+      end
+    end
+
   end
 
 end

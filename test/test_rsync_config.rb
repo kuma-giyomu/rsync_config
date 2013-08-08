@@ -167,6 +167,7 @@ EOL
       fail
     ensure
       File.delete TEST_OUTPUT_FILE if File.exists? TEST_OUTPUT_FILE
+      File.delete TEST_SECRETS_FILE if File.exists? TEST_SECRETS_FILE
     end
   end
 

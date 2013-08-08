@@ -73,6 +73,8 @@ module RsyncConfig
       File.open(file_path, 'w') do |file|
         file.write to_config_file
       end
+
+      write_secrets_files
     end
 
     def module_names
@@ -86,7 +88,11 @@ module RsyncConfig
     end
 
     def write_secrets_files
-      write_secrets_file
+      write_secrets_file self.[]('secrets file', true)
+
+      modules.each do |rmodule|
+        rmodule.write_secrets_file rmodule.[]('secrets file', true)
+      end
     end
   end
 

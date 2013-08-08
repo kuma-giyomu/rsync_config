@@ -26,18 +26,18 @@ module RsyncConfig
 
     end 
     
-    def [](key)
+    def [](key, local_only = false)
       key = sanitize_key(key)
       return nil if key.nil? 
 
       value = properties[key]
-      return @parent_config[key] if value.nil? && @parent_config.respond_to?(:[])
+      return @parent_config[key] if !local_only && value.nil? && @parent_config.respond_to?(:[])
 
       value
     end
 
     def sanitize_key(key)
-      key = key.to_s if key.is_a? Symbol
+      key = key.to_s unless key.is_a? String
       key = key.strip.downcase
       return nil if key.length == 0
       return nil unless self.class.allowed_property? key
