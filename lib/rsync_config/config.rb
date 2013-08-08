@@ -60,13 +60,23 @@ module RsyncConfig
     end
 
     def to_s
+      to_config_file
+    end
+
+    def to_config_file
       out = properties_to_a.join "\n"
 
       @modules && @modules.each do |key, mod|
-        out += "\n" + mod.to_s
+        out += "\n" + mod.to_config_file
       end
 
       out
+    end
+
+    def write_to(file_path)
+      File.open(file_path, 'w') do |file|
+        file.write to_config_file
+      end
     end
 
   end

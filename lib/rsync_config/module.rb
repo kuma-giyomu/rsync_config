@@ -20,6 +20,10 @@ module RsyncConfig
     end
 
     def to_s
+      to_config_file
+    end
+
+    def to_config_file
       (["[#{@name}]"] + properties_to_a.map {|p| "    #{p}"}).join "\n"
     end
 

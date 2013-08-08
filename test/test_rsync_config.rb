@@ -3,8 +3,11 @@ require 'rsync_config'
 
 class RsyncConfigTest < Test::Unit::TestCase
 
-  TEST_INPUT_FILE = 'test/etc/rsyncd.conf'
-  TEST_OUTPUT_FILE = 'test/etc/out/rsyncd.conf'
+  TEST_INPUT_FILE = File.join(__dir__, 'etc', 'rsyncd.conf')
+
+  TEST_OUTPUT_FILE = File.join(__dir__, 'etc', 'out', 'rsyncd.conf')
+
+  TEST_SECRETS_FILE = File.join(__dir__, 'etc', 'out', 'secrets.conf')
 
   def setup
     @config = RsyncConfig::Config.new
@@ -117,11 +120,42 @@ EOS
     assert_true ftp_module.user? 'george'
   end
 
-  def test_write_to_file
+  def test_write_to_file_basic
     @config[:uid] = 'test'
 
     begin
       @config.write_to TEST_OUTPUT_FILE
+      expected = <<EOL
+uid = test
+EOL
+      assert_true File.exists? TEST_OUTPUT_FILE
+      assert_equal expected.strip, File.read(TEST_OUTPUT_FILE).strip
+    rescue ::StandardError
+      fail
+    ensure
+      File.delete TEST_OUTPUT_FILE if File.exists? TEST_OUTPUT_FILE
+    end
+  end
+
+  def test_write_to_secrets_file
+    @config[:uid] = 'test'
+    @config['secrets file'] = TEST_SECRETS_FILE
+    @config.users['john'] = 'doe'
+
+    begin
+      @config.write_to TEST_OUTPUT_FILE
+      main_expected = <<EOL
+uid = test
+secrets file = #{TEST_SECRETS_FILE}
+EOL
+      assert_true File.exists? TEST_OUTPUT_FILE
+      assert_equal main_expected.strip, File.read(TEST_OUTPUT_FILE).strip
+
+      secrets_expected = <<EOL
+john:doe
+EOL
+      assert_true File.exists? TEST_SECRETS_FILE
+      assert_equal secrets_expected.strip, File.read(TEST_SECRETS_FILE).strip
     rescue ::StandardError
       fail
     ensure
