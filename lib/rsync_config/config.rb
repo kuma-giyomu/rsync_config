@@ -75,6 +75,10 @@ module RsyncConfig
       end
     end
 
+    def module_names
+      modules.keys
+    end
+
     private
 
     def modules

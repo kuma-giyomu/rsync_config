@@ -55,6 +55,13 @@ EOS
     assert_equal expected.strip, @config.to_s
   end
 
+  def test_module_listing
+    @config.module :ftp
+    @config.module :smb
+    @config.module :something
+    assert_equal ['ftp', 'smb', 'something'], @config.module_names
+  end
+
   def test_easy_accessor_complete
     @config[:uid] = 'nut'
     @config[:gid] = 'kiwi'
