@@ -3,6 +3,8 @@ require 'rsync_config'
 
 class RsyncConfigTest < Test::Unit::TestCase
 
+  TEST_INPUT_FILE = 'test/etc/rsyncd.conf'
+  TEST_OUTPUT_FILE = 'test/etc/out/rsyncd.conf'
 
   def setup
     @config = RsyncConfig::Config.new
@@ -20,18 +22,18 @@ class RsyncConfigTest < Test::Unit::TestCase
 
   def test_load_file
     assert_nothing_raised RuntimeError do
-      @config = RsyncConfig.load_file 'test/etc/rsyncd.conf'
+      @config = RsyncConfig.load_file TEST_INPUT_FILE
     end
     assert_equal @config.class, RsyncConfig::Config, 'Did not return a config object'
   end
 
   def test_accessing_missing_properties_returns_nil
-    @config = RsyncConfig.load_file 'test/etc/rsyncd.conf'
+    @config = RsyncConfig.load_file TEST_INPUT_FILE
     assert_nil @config[:i_dont_exist]
   end
 
   def test_accessing_a_property_returns_a_string
-    @config = RsyncConfig.load_file 'test/etc/rsyncd.conf'
+    @config = RsyncConfig.load_file TEST_INPUT_FILE
     assert_equal 'nobody', @config[:uid]
   end
 
@@ -113,6 +115,18 @@ EOS
     ftp_module.users = {'george' => 'password'}
     assert_false ftp_module.user? 'john'
     assert_true ftp_module.user? 'george'
+  end
+
+  def test_write_to_file
+    @config[:uid] = 'test'
+
+    begin
+      @config.write_to TEST_OUTPUT_FILE
+    rescue ::StandardError
+      fail
+    ensure
+      File.delete TEST_OUTPUT_FILE if File.exists? TEST_OUTPUT_FILE
+    end
   end
 
 end

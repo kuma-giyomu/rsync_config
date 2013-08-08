@@ -69,10 +69,6 @@ module RsyncConfig
       out
     end
 
-    def debug
-      debugger
-    end
-
   end
 
 end
