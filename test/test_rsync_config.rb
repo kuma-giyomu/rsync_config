@@ -181,6 +181,9 @@ EOL
     ftp_module = @config.module :ftp
     assert_not_nil ftp_module['secrets file']
     assert_true ftp_module.user? 'john'
+    assert_true @config.user? 'bob'
+    assert_false ftp_module.user? 'bob'
+    assert_true ftp_module.user? 'ringo'
   end
 
 end
