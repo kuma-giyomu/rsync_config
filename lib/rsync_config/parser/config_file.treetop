@@ -5,7 +5,19 @@ module RsyncConfig
   grammar RsyncConfigFile
 
     rule start 
-      global_section? module_section? EOF <Node::Config>
+      global_section? module_section? EOF
+      {
+        attr_accessor :config, :active_module
+
+        def to_config
+          @config = ::RsyncConfig::Config.new
+          @active_module = nil
+
+          crawl self 
+
+          @config
+        end
+      }
     end
 
     rule global_section
@@ -21,7 +33,16 @@ module RsyncConfig
     end
 
     rule option
-      property space? '=' space? value space? <Node::Property>
+      property space? '=' space? value space?
+      {
+        def action(top_node)
+          receiver = top_node.active_module.nil? ? top_node.config : top_node.active_module
+          receiver[property.text_value] = value.text_value
+
+          # interrupt subtree crawling
+          false
+        end
+      }
     end
 
     rule property
@@ -38,10 +59,17 @@ module RsyncConfig
     end
 
     rule module_header
-      '[' module_label:([^/\]]+) ']' space? <Node::Module>
+      '[' module_label:([^/\]]+) ']' space?
       {
         def value
           module_label.text_value.gsub /\s+/, ' '
+        end
+
+        def action(top_node)
+          top_node.active_module = top_node.config.module(module_label.text_value)
+
+          # interrupt subtree crawling
+          false
         end
       }
     end
