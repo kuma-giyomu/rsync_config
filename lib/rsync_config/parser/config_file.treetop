@@ -5,7 +5,7 @@ module RsyncConfig
   grammar RsyncConfigFile
 
     rule start 
-      global_section? module_section? EOF <::RsyncConfig::Node::Config>
+      global_section? module_section? EOF <Node::Config>
     end
 
     rule global_section
@@ -21,7 +21,7 @@ module RsyncConfig
     end
 
     rule option
-      property space? '=' space? value space? <::RsyncConfig::Node::Property>
+      property space? '=' space? value space? <Node::Property>
     end
 
     rule property
@@ -38,7 +38,7 @@ module RsyncConfig
     end
 
     rule module_header
-      '[' module_label:([^/\]]+) ']' space? <::RsyncConfig::Node::Module>
+      '[' module_label:([^/\]]+) ']' space? <Node::Module>
       {
         def value
           module_label.text_value.gsub /\s+/, ' '
