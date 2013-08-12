@@ -11,12 +11,21 @@ class RsyncConfigTest < Test::Unit::TestCase
 
   TEST_SECRETS_FILE = File.join(__dir__, 'etc', 'out', 'secrets.conf')
 
-  def setup
-    @config = RsyncConfig::Config.new
+  def teardown
+    File.delete TEST_OUTPUT_FILE if File.exists? TEST_OUTPUT_FILE
+    File.delete TEST_SECRETS_FILE if File.exists? TEST_SECRETS_FILE
   end
 
-  def teardown
-    @config = nil
+  def make_new_config
+    RsyncConfig::Config.new
+  end
+
+  def make_simple_config
+    RsyncConfig.load_file TEST_INPUT_FILE
+  end
+
+  def make_secrets_config
+    RsyncConfig.load_file TEST_INPUT_FILE_WITH_SECRETS
   end
 
   def test_load_missing_file
@@ -25,28 +34,33 @@ class RsyncConfigTest < Test::Unit::TestCase
     end
   end
 
-  def test_load_file
+  def test_load_file_does_not_crash
+    config = nil
     assert_nothing_raised RuntimeError do
-      @config = RsyncConfig.load_file TEST_INPUT_FILE
+      config = make_simple_config
     end
-    assert_equal @config.class, RsyncConfig::Config, 'Did not return a config object'
-  end
+
+    assert_equal config.class, RsyncConfig::Config, 'Did not return a config object' end
 
   def test_accessing_missing_properties_returns_nil
-    @config = RsyncConfig.load_file TEST_INPUT_FILE
-    assert_nil @config[:i_dont_exist]
+    config = make_new_config
+
+    assert_nil config[:i_dont_exist]
   end
 
   def test_accessing_a_property_returns_a_string
-    @config = RsyncConfig.load_file TEST_INPUT_FILE
-    assert_equal 'nobody', @config[:uid]
+    config = make_new_config
+    config[:uid] = 'nobody'
+
+    assert_equal 'nobody', config[:uid]
   end
 
   def test_one_module_output
-    @config[:uid] = 'true'
-    @config[:comment] = 'false'
+    config = make_new_config
+    config[:uid] = 'true'
+    config[:comment] = 'false'
 
-    ftp_module = @config.module :ftp
+    ftp_module = config.module :ftp
     ftp_module[:path] = 'local'
     expected = <<EOS
 uid = true
@@ -54,72 +68,89 @@ comment = false
 [ftp]
     path = local
 EOS
-    assert_equal expected.strip, @config.to_s
+
+    assert_equal expected.strip, config.to_config_file
   end
 
   def test_module_listing
-    @config.module :ftp
-    @config.module :smb
-    @config.module :something
-    assert_equal ['ftp', 'smb', 'something'], @config.module_names
+    config = make_new_config
+    config.module :ftp
+    config.module :smb
+    config.module :something
+
+    assert_equal ['ftp', 'smb', 'something'], config.module_names
   end
 
   def test_easy_accessor_complete
-    @config[:uid] = 'nut'
-    @config[:gid] = 'kiwi'
-    @config[:uid] = @config[:gid]
-    assert_equal 'kiwi', @config[:uid]
-    assert_equal @config[:gid], @config[:uid]
+    config = make_new_config
+    config[:uid] = 'nut'
+    config[:gid] = 'kiwi'
+    config[:uid] = config[:gid]
+
+    assert_equal 'kiwi', config[:uid]
+    assert_equal config[:gid], config[:uid]
   end
 
   def test_remove_property
-    @config[:uid] = 'true'
-    @config[:comment] = 'false'
+    config = make_new_config
+    config[:uid] = 'true'
+    config[:comment] = 'false'
 
-    ftp_module = @config.module :ftp
+    ftp_module = config.module :ftp
     ftp_module[:path] = 'local'
 
     # remove the comment config
-    @config[:comment] = nil
+    config[:comment] = nil
     expected = <<EOS
 uid = true
 [ftp]
     path = local
 EOS
-    assert_equal expected.strip, @config.to_s
+    assert_equal expected.strip, config.to_s
   end
 
   def test_module_inherits_config
-    @config[:uid] = 'true'
-    ftp_module = @config.module :ftp
+    config = make_new_config
+    config[:uid] = 'true'
+    ftp_module = config.module :ftp
+
     assert_equal 'true', ftp_module[:uid]
   end
 
   def test_global_users_accessor_exists
-    assert_not_nil @config.users
+    config = make_new_config
+
+    assert_not_nil config.users
   end
 
   def test_global_users_assignment
-    @config.users = {'john' => 'password'}
-    assert_true @config.user?('john')
+    config = make_new_config
+    config.users = {'john' => 'password'}
+
+    assert_true config.user?('john')
   end
 
   def test_global_user_existence
-    @config.users = {'john' => 'password'}
-    assert_true @config.user?('john')
-    assert_false @config.user?('georges')
+    config = make_new_config
+    config.users = {'john' => 'password'}
+
+    assert_true config.user?('john')
+    assert_false config.user?('georges')
   end
 
   def test_module_user_existence
-    ftp_module = @config.module :ftp
+    config = make_new_config
+    ftp_module = config.module :ftp
     ftp_module.users = {'john' => 'password'}
+
     assert_true ftp_module.user? 'john'
     assert_false ftp_module.user? 'george'
   end
 
   def test_module_user_inheritance
-    @config.users = {'john' => 'password'}
-    ftp_module = @config.module :ftp
+    config = make_new_config
+    config.users = {'john' => 'password'}
+    ftp_module = config.module :ftp
     
     assert_true ftp_module.user? 'john'
     assert_false ftp_module.user? 'george'
@@ -129,61 +160,70 @@ EOS
     assert_true ftp_module.user? 'george'
   end
 
-  def test_write_to_file_basic
-    @config[:uid] = 'test'
+  def test_write_to_file_succeeds
+    config = make_new_config
 
-    begin
-      @config.write_to TEST_OUTPUT_FILE
-      expected = <<EOL
-uid = test
-EOL
-      assert_true File.exists? TEST_OUTPUT_FILE
-      assert_equal expected.strip, File.read(TEST_OUTPUT_FILE).strip
-    rescue ::StandardError
-      fail
-    ensure
-      File.delete TEST_OUTPUT_FILE if File.exists? TEST_OUTPUT_FILE
-    end
+    config.write_to TEST_OUTPUT_FILE
+    assert_true File.exists? TEST_OUTPUT_FILE
   end
 
-  def test_write_to_secrets_file
-    @config[:uid] = 'test'
-    @config['secrets file'] = TEST_SECRETS_FILE
-    @config.users['john'] = 'doe'
+  def test_write_to_file_has_correct_content
+    config = make_new_config
+    config[:uid] = 'test'
 
-    begin
-      @config.write_to TEST_OUTPUT_FILE
-      main_expected = <<EOL
+    config.write_to TEST_OUTPUT_FILE
+    expected = <<EOL
 uid = test
-secrets file = #{TEST_SECRETS_FILE}
 EOL
-      assert_true File.exists? TEST_OUTPUT_FILE
-      assert_equal main_expected.strip, File.read(TEST_OUTPUT_FILE).strip
+    assert_equal expected.strip, File.read(TEST_OUTPUT_FILE).strip
+  end
 
-      secrets_expected = <<EOL
+  def test_write_to_secrets_file_succeeds
+    config = make_simple_config
+    config['secrets file'] = TEST_SECRETS_FILE
+    config.users['john'] = 'doe'
+
+    config.write_to TEST_OUTPUT_FILE
+
+    assert_true File.exists? TEST_SECRETS_FILE
+  end
+
+  def test_write_to_secrets_file_has_correct_permissions
+    config = make_new_config
+    config['secrets file'] = TEST_SECRETS_FILE
+    config.users['john'] = 'doe'
+
+    config.write_to TEST_OUTPUT_FILE
+
+    assert_nil File.world_readable? TEST_SECRETS_FILE
+    assert_nil File.world_writable? TEST_SECRETS_FILE
+  end
+
+  def test_write_correct_content_to_secrets_file
+    config = make_new_config
+    config['secrets file'] = TEST_SECRETS_FILE
+    config.users['john'] = 'doe'
+
+    config.write_to TEST_OUTPUT_FILE
+
+    secrets_expected = <<EOL
 john:doe
 EOL
-      assert_true File.exists? TEST_SECRETS_FILE
-
-      assert_nil File.world_readable? TEST_SECRETS_FILE
-      assert_nil File.world_writable? TEST_SECRETS_FILE
-      assert_equal secrets_expected.strip, File.read(TEST_SECRETS_FILE).strip
-    rescue ::StandardError
-      fail
-    ensure
-      File.delete TEST_OUTPUT_FILE if File.exists? TEST_OUTPUT_FILE
-      File.delete TEST_SECRETS_FILE if File.exists? TEST_SECRETS_FILE
-    end
+    assert_equal secrets_expected.strip, File.read(TEST_SECRETS_FILE).strip
   end
 
-  def test_parse_secrets_file
-    @config = RsyncConfig.load_file TEST_INPUT_FILE_WITH_SECRETS
-    ftp_module = @config.module :ftp
-    assert_not_nil ftp_module['secrets file']
-    assert_true ftp_module.user? 'john'
-    assert_true @config.user? 'bob'
-    assert_false ftp_module.user? 'bob'
-    assert_true ftp_module.user? 'ringo'
+  def test_module_secrets_user_exists
+    config = make_secrets_config
+    assert_true config.module(:ftp).user? 'john'
   end
 
+  def test_global_secrets_user_exists
+    config = make_secrets_config
+    assert_true config.user? 'bob'
+  end
+
+  def test_module_overriden_secrets_does_not_include_global_users
+    config = make_secrets_config
+    assert_false config.module(:ftp).user? 'bob'
+  end
 end
