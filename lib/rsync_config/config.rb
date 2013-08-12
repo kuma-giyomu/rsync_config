@@ -84,13 +84,7 @@ module RsyncConfig
     end
 
     def after_parse
-      load_secrets_file self.[]('secrets file', true)
-
-      modules.each_value do |rmodule|
-        rmodule.load_secrets_file rmodule.[]('secrets file', true)
-      end
-
-      self
+      batch_process_secrets_files :load_secrets_file
     end
 
     private
@@ -100,14 +94,19 @@ module RsyncConfig
     end
 
     def write_secrets_files
-      write_secrets_file self.[]('secrets file', true)
+      batch_process_secrets_files :write_secrets_file
+    end
+
+    def batch_process_secrets_files(method_name)
+      send method_name, self.[]('secrets file', true)
 
       modules.each_value do |rmodule|
-        rmodule.write_secrets_file rmodule.[]('secrets file', true)
+        rmodule.send method_name, rmodule.[]('secrets file', true)
       end
 
       self
     end
+
   end
 
 end
