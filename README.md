@@ -28,9 +28,11 @@ Alternatively, you can use `RsyncConfig::parse <content>` if you prefer to provi
 
 The `RsyncConfig::Config` instance provides access to properties via the `#[]` and `#[]=` methods. So for instance 
 
-    config = RsyncConfig::Config.new
-    config['uid'] = 'alice' # setter
-    puts config['uid']      # getter
+```ruby
+config = RsyncConfig::Config.new
+config['uid'] = 'alice' # setter
+puts config['uid']      # getter
+```
 
 Note that the class accepts symbols as alternative `config[:uid]` is valid too.
 But I felt it was best to keep as strings for the config options with spaces such as `secrets file`.
@@ -39,15 +41,19 @@ But I felt it was best to keep as strings for the config options with spaces suc
 
 The `RsyncConfig::Config` instance provides access to modules via the `#module` method
 
-    config = RsyncConfig::Config.new
-    foo_module = config.module :foo
-    bar_module = config.module 'bar'
+```ruby
+config = RsyncConfig::Config.new
+foo_module = config.module :foo
+bar_module = config.module 'bar'
+```
 
 Here again, symbols are converted to strings (rsync allows modules with spaces and whatnot)
 
 Properties can be assigned to modules in the same way they are added to the `RsyncConfig::Config` object.
 
-    foo_module['uid'] = 'alice'
+```ruby
+foo_module['uid'] = 'alice'
+```
 
 `RsyncConfig::Module` instances do not have modules themselves.
 
@@ -57,10 +63,12 @@ Both `RsyncConfig::Config` and `RsyncConfig::Module` instances can define a list
 They are defined using the `#users` hash accessor method.
 Additionally a test method `#user?` can be used to probe for a give user's existence.
 
-    config = RsyncConfig::Config.new
-    config.users = {'alice' => 'wonder'}
-    puts config.user?('alice') # true
-    config.users['bob'] = 'march'
+```ruby
+config = RsyncConfig::Config.new
+config.users = {'alice' => 'wonder'}
+puts config.user?('alice') # true
+config.users['bob'] = 'march'
+```
 
 ### Writing to disk
 
