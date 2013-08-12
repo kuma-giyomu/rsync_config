@@ -60,13 +60,15 @@ module RsyncConfig
     end
 
     def to_config_file
-      out = properties_to_a.join "\n"
+      out = []
+      properties_to_s = properties_to_a.join("\n")
+      out << properties_to_s if properties_to_s.length > 0
 
       modules.each do |key, mod|
-        out += "\n" + mod.to_config_file
+        out << mod.to_config_file
       end
 
-      out
+      out.join "\n"
     end
 
     def write_to(file_path)
