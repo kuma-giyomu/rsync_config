@@ -8,10 +8,10 @@ Gem::Specification.new do |spec|
   spec.version       = RsyncConfig::VERSION
   spec.authors       = ["Guillaume Bodi"]
   spec.email         = ["bodi.giyomu@gmail.com"]
-  spec.description   = %q{TODO: Write a gem description}
-  spec.summary       = %q{TODO: Write a gem summary}
+  spec.description   = %q{Utility gem to manage rsyncd config files}
+  spec.summary       = %q{Utility gem to manage rsyncd config files}
   spec.homepage      = ""
-  spec.license       = "GPL"
+  spec.license       = "GPLv3"
 
   spec.files         = `git ls-files`.split($/)
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
