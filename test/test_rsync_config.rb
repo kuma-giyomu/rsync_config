@@ -57,14 +57,9 @@ class RsyncConfigTest < Test::Unit::TestCase
 
   def test_one_module_output
     config = make_new_config
-    config[:uid] = 'true'
-    config[:comment] = 'false'
-
     ftp_module = config.module :ftp
     ftp_module[:path] = 'local'
     expected = <<EOS
-uid = true
-comment = false
 [ftp]
     path = local
 EOS
@@ -96,15 +91,10 @@ EOS
     config[:uid] = 'true'
     config[:comment] = 'false'
 
-    ftp_module = config.module :ftp
-    ftp_module[:path] = 'local'
-
     # remove the comment config
     config[:comment] = nil
     expected = <<EOS
 uid = true
-[ftp]
-    path = local
 EOS
     assert_equal expected.strip, config.to_s
   end
@@ -135,6 +125,11 @@ EOS
     config.users = {'john' => 'password'}
 
     assert_true config.user?('john')
+  end
+
+  def test_global_user_inexistence
+    config = make_new_config
+
     assert_false config.user?('georges')
   end
 
@@ -147,23 +142,27 @@ EOS
     assert_false ftp_module.user? 'george'
   end
 
+  def test_module_user_inexistence
+    config = make_new_config
+    ftp_module = config.module :ftp
+
+    assert_false ftp_module.user? 'george'
+  end
+
   def test_module_user_inheritance
     config = make_new_config
     config.users = {'john' => 'password'}
     ftp_module = config.module :ftp
-    
-    assert_true ftp_module.user? 'john'
-    assert_false ftp_module.user? 'george'
-
     ftp_module.users = {'george' => 'password'}
+
     assert_false ftp_module.user? 'john'
     assert_true ftp_module.user? 'george'
   end
 
   def test_write_to_file_succeeds
     config = make_new_config
-
     config.write_to TEST_OUTPUT_FILE
+
     assert_true File.exists? TEST_OUTPUT_FILE
   end
 
@@ -175,6 +174,7 @@ EOS
     expected = <<EOL
 uid = test
 EOL
+
     assert_equal expected.strip, File.read(TEST_OUTPUT_FILE).strip
   end
 
@@ -214,16 +214,20 @@ EOL
 
   def test_module_secrets_user_exists
     config = make_secrets_config
+
     assert_true config.module(:ftp).user? 'john'
   end
 
   def test_global_secrets_user_exists
     config = make_secrets_config
+
     assert_true config.user? 'bob'
   end
 
   def test_module_overriden_secrets_does_not_include_global_users
     config = make_secrets_config
+
     assert_false config.module(:ftp).user? 'bob'
   end
+
 end
