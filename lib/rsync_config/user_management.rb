@@ -11,7 +11,7 @@ module RsyncConfig
       def parse_secrets_file(content)
         raise 'Cannot process nil' if content.nil?
 
-        Treetop.load 'lib/rsync_config/parser/secrets_file'
+        Treetop.load File.join(__dir__, 'parser/secrets_file')
         parser = RsyncSecretsFileParser.new
         p = parser.parse content
 
