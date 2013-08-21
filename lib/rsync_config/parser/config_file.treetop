@@ -26,6 +26,11 @@ module RsyncConfig
     end
 
     rule module_section
+      module_definition module_section
+      / module_definition
+    end
+
+    rule module_definition
       module_header module_body
     end
 

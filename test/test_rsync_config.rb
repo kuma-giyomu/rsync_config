@@ -243,4 +243,18 @@ EOL
     end
   end
 
+  def test_failing_to_parse_bug_2
+    content = <<EOL
+[TEST0001]
+    uid = user
+[TEST0002]
+    uid = user
+EOL
+
+    content.strip!
+    
+    assert_nothing_raised do
+      RsyncConfig.parse content
+    end
+  end
 end
