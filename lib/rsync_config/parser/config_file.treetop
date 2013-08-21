@@ -21,15 +21,21 @@ module RsyncConfig
     end
 
     rule global_section
-      ((comment / space? option?) EOL)+
+      (statement EOL global_section)
+      / statement
     end
 
     rule module_section
-      (module_header module_body*)+
+      module_header module_body
     end
 
     rule module_body
-      (comment / space? option?) EOL 
+      (statement EOL module_body)
+      / statement
+    end
+
+    rule statement
+      comment / space? option?
     end
 
     rule option
