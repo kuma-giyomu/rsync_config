@@ -79,6 +79,25 @@ This method will automatically try to write the secrets files when defined.
 For a raw String output, just call `RsyncConfig::Config#to_config_file` instead.
 Note that this method will not return the content of the secrets file (not sure if this will be useful).
 
+### Secrets files
+
+Starting with version 0.2.0, it is possible to create secrets files entries using the `RsyncConfig::SecretsFile` class.
+It allows to generate a file in a specific location that actually does not match the content of the entry in the config file itself.
+This is particularly useful in the case of symlinks.
+
+```ruby
+config = RsyncConfig::Config.new
+config.users = {'alice' => 'wonder'}
+config['secrets file'] = RsyncConfig::SecretsFile(
+  '/myapplication/1.0/rsyncd.secrets',
+  value: '/etc/rsyncd.secrets'
+)
+```
+
+`RsyncConfig::SecretsFile` accepts the physical output path as first parameter.
+The `value` parameter is optional (but most likely desired) and defines the value that 
+will be used to generate the config file.
+
 ### Limitations
 
 - currently the gem does not process the directives `&include` and `&merge`.
