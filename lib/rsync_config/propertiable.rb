@@ -48,13 +48,15 @@ module RsyncConfig
       key = sanitize_key(key)
       if value.nil?
         properties.delete key
+      elsif value.is_a? ConfigEntry
+        properties[key] = value
       else
-        properties[key] = value.to_s unless value.nil?
+        properties[key] = value.to_s
       end
     end
 
     def properties_to_a
-      properties.map { |key, value| "#{key} = #{value}" }
+      properties.map { |key, value| "#{key} = #{value.to_s}" }
     end
 
     private 

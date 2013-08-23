@@ -48,8 +48,11 @@ module RsyncConfig
       end 
     end
 
-    def write_secrets_file(file)
-      return if file.nil?
+    def write_secrets_file(secrets_file)
+      return if secrets_file.nil?
+
+      file = secrets_file.respond_to?(:output) ? secrets_file.output : secrets_file.to_s
+
       raise "Cannot write secrets file #{file}" if File.exists?(file) && ! File.writable?(file)
       raise "Cannot create secrets file #{file}" if !File.exist?(file) && ! ( Dir.exists?(File.dirname(file)) && File.writable?(File.dirname(file)))
 

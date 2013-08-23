@@ -1,6 +1,8 @@
 require 'polyglot'
 require 'treetop'
 require 'rsync_config/version'
+require 'rsync_config/config_entry'
+require 'rsync_config/secrets_file'
 require 'rsync_config/parser'
 require 'rsync_config/propertiable'
 require 'rsync_config/user_management'

@@ -6,7 +6,6 @@ class RsyncConfigTest < Test::Unit::TestCase
   TEST_INPUT_FILE = File.join(__dir__, 'etc', 'rsyncd.conf')
 
   TEST_INPUT_FILE_WITH_SECRETS = File.join(__dir__, 'etc', 'rsyncd_with_secrets.conf')
-
   TEST_OUTPUT_FILE = File.join(__dir__, 'etc', 'out', 'rsyncd.conf')
 
   TEST_SECRETS_FILE = File.join(__dir__, 'etc', 'out', 'secrets.conf')
@@ -256,5 +255,24 @@ EOL
     assert_nothing_raised do
       RsyncConfig.parse content
     end
+  end
+
+  def test_using_a_secrets_file_object_outputs_to_different_file
+    config = RsyncConfig::Config.new
+    config.users = {
+      'john' => 'doe'
+    }
+    secrets_output_config = "#{TEST_SECRETS_FILE}.config_value"
+    config['secrets file'] = RsyncConfig::SecretsFile.new(
+      TEST_SECRETS_FILE,
+      value: secrets_output_config
+    )
+
+    config.write_to TEST_OUTPUT_FILE
+    assert File.exists? TEST_SECRETS_FILE
+    assert_false File.exists? secrets_output_config
+    assert_equal secrets_output_config, config['secrets file'].to_s
+
+    File.unlink secrets_output_config if File.exists? secrets_output_config
   end
 end
